@@ -21,7 +21,7 @@ class Post(models.Model):
     author = models.ForeignKey(User,on_delete=models.CASCADE) 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    category = models.ForeignKey(Category,on_delete=models.SET_NULL)
+    category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,blank=True )
     tag = models.ManyToManyField(Tag)
     view_count = models.PositiveBigIntegerField(default=0)
     liked_users = models.ManyToManyField(User,related_name='liked_posts')
