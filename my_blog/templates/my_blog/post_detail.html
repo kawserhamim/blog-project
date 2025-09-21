@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - Django Blog{% endblock %}
+
+{% block header %}{{ post.title }}{% endblock %}
+{% block subtitle %}by {{ post.author.username }} • {{ post.created_at|date:"F d, Y" }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Post Content -->
+        <article class="card mb-4">
+            <div class="card-body">
+                <!-- Post Meta -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-user-circle fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ post.author.username }}</h6>
+                            <small class="text-muted">
+                                {{ post.created_at|date:"F d, Y \a\t g:i A" }}
+                                {% if post.updated_at != post.created_at %}
+                                    <span class="ms-2">(Updated: {{ post.updated_at|date:"M d, Y" }})</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    {% if user == post.author %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'edit_post' post.pk %}">
+                                        <i class="fas fa-edit me-1"></i>Edit Post
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'delete_post' post.pk %}">
+                                        <i class="fas fa-trash me-1"></i>Delete Post
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Post Content -->
+                <div class="post-content mb-4">
+                    {{ post.content|safe }}
+                </div>
+
+                <!-- Post Meta Info -->
+                <div class="row text-center py-3 border-top border-bottom">
+                    <div class="col-4">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fas fa-eye fa-lg text-primary mb-1"></i>
+                            <strong>{{ post.view_count }}</strong>
+                            <small class="text-muted">Views</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fas fa-heart fa-lg text-danger mb-1"></i>
+                            <strong>{{ like_count }}</strong>
+                            <small class="text-muted">Likes</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fas fa-comments fa-lg text-success mb-1"></i>
+                            <strong>{{ comments.count }}</strong>
+                            <small class="text-muted">Comments</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags and Category -->
+                <div class="mt-3">
+                    {% if post.category %}
+                        <div class="mb-2">
+                            <strong>Category:</strong>
+                            <a href="?category={{ post.category.name }}" class="badge bg-primary text-decoration-none ms-1">
+                                {{ post.category.name }}
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    {% if post.tag.all %}
+                        <div>
+                            <strong>Tags:</strong>
+                            {% for tag in post.tag.all %}
+                                <a href="?tag={{ tag.name }}" class="badge bg-secondary text-decoration-none me-1">
+                                    #{{ tag.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Like Button -->
+                {% if user.is_authenticated %}
+                    <div class="mt-4">
+                        <form method="post" action="{% url 'like_post' post.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger">
+                                {% if is_liked %}
+                                    <i class="fas fa-heart"></i> Unlike
+                                {% else %}
+                                    <i class="far fa-heart"></i> Like
+                                {% endif %}
+                                ({{ like_count }})
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </article>
+
+        <!-- Comments Section -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>Comments ({{ comments.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Add Comment Form -->
+                {% if user.is_authenticated %}
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Add a comment</label>
+                            <textarea class="form-control" name="{{ form.content.name }}" 
+                                      id="{{ form.content.id_for_label }}" rows="3" 
+                                      placeholder="Share your thoughts..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Post Comment
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">register</a> to leave a comment.
+                    </div>
+                {% endif %}
+
+                <!-- Comments List -->
+                {% if comments %}
+                    <div class="comments-list">
+                        {% for comment in comments %}
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-user-circle fa-2x text-muted"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ comment.author.username }}</h6>
+                                            <small class="text-muted">{{ comment.created_at|date:"M d, Y \a\t g:i A" }}</small>
+                                            <div class="mt-2">{{ comment.content }}</div>
+                                        </div>
+                                    </div>
+                                    {% if user == comment.author %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#">
+                                                        <i class="fas fa-trash me-1"></i>Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                        <p>No comments yet. Be the first to share your thoughts!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="sidebar">
+            <!-- Author Info -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle fa-4x text-primary mb-3"></i>
+                    <h5>{{ post.author.username }}</h5>
+                    <p class="text-muted">Author</p>
+                    <small class="text-muted">
+                        Member since {{ post.author.date_joined|date:"M Y" }}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Related Posts -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-newspaper me-2"></i>Related Posts
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-muted text-center py-3">
+                        <i class="fas fa-search"></i>
+                        <p class="mb-0 mt-2">Related posts will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-folder me-2"></i>Categories
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for category in categories %}
+                            <a href="{% url 'post_list' %}?category={{ category.name }}" 
+                               class="list-group-item list-group-item-action border-0 px-0">
+                                {{ category.name }}
+                                <span class="badge bg-primary rounded-pill">{{ category.post_set.count }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tags me-2"></i>Tags
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for tag in tags %}
+                        <a href="{% url 'post_list' %}?tag={{ tag.name }}" 
+                           class="badge bg-light text-dark text-decoration-none me-2 mb-2 p-2">
+                            #{{ tag.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back to Top Button -->
+<a href="#" class="btn btn-primary position-fixed bottom-0 end-0 m-3 rounded-circle" 
+   style="width: 50px; height: 50px;" onclick="window.scrollTo(0,0)">
+    <i class="fas fa-arrow-up"></i>
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-content {
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    .comments-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}

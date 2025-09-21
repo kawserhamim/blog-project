@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Post - Django Blog{% endblock %}
+
+{% block header %}Create New Post{% endblock %}
+{% block subtitle %}Share your thoughts with the world{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-pen me-2"></i>Write Your Post
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Title Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <strong>Title</strong> <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control {% if form.title.errors %}is-invalid{% endif %}" 
+                               name="{{ form.title.name }}" 
+                               id="{{ form.title.id_for_label }}"
+                               value="{{ form.title.value|default:'' }}"
+                               placeholder="Enter an engaging title for your post..."
+                               required>
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.title.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Category Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            <strong>Category</strong>
+                        </label>
+                        <select class="form-select {% if form.category.errors %}is-invalid{% endif %}" 
+                                name="{{ form.category.name }}" 
+                                id="{{ form.category.id_for_label }}">
+                            <option value="">Choose a category...</option>
+                            {% for category in form.category.field.queryset %}
+                                <option value="{{ category.pk }}" 
+                                    {% if form.category.value == category.pk %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.category.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tags Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.tag.id_for_label }}" class="form-label">
+                            <strong>Tags</strong>
+                        </label>
+                        <select class="form-select {% if form.tag.errors %}is-invalid{% endif %}" 
+                                name="{{ form.tag.name }}" 
+                                id="{{ form.tag.id_for_label }}" 
+                                multiple>
+                            {% for tag in form.tag.field.queryset %}
+                                <option value="{{ tag.pk }}" 
+                                    {% if tag.pk in form.tag.value %}selected{% endif %}>
+                                    {{ tag.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Hold Ctrl (or Cmd on Mac) to select multiple tags
+                        </div>
+                        {% if form.tag.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.tag.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">
+                            <strong>Content</strong> <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control {% if form.content.errors %}is-invalid{% endif %}" 
+                                  name="{{ form.content.name }}" 
+                                  id="{{ form.content.id_for_label }}"
+                                  rows="15"
+                                  placeholder="Write your amazing content here..."
+                                  required>{{ form.content.value|default:'' }}</textarea>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            You can use rich text formatting with the editor above
+                        </div>
+                        {% if form.content.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.content.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'post_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary me-2" onclick="previewPost()">
+                                <i class="fas fa-eye me-1"></i>Preview
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Publish Post
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Writing Tips Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Writing Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Use a compelling title
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Choose relevant tags
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Write engaging content
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Use proper formatting
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Add images if needed
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Proofread before publishing
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewPost() {
+    const title = document.getElementById('{{ form.title.id_for_label }}').value;
+    const content = document.getElementById('{{ form.content.id_for_label }}').value;
+    
+    if (!title || !content) {
+        alert('Please fill in the title and content before previewing.');
+        return;
+    }
+    
+    // Create preview window
+    const previewWindow = window.open('', 'preview', 'width=800,height=600');
+    previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Preview: ${title}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body { padding: 20px; }
+                .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; margin: -20px -20px 20px -20px; }
+            </style>
+        </head>
+        <body>
+            <div class="preview-header text-center">
+                <h1>${title}</h1>
+                <p class="mb-0">Preview Mode</p>
+            </div>
+            <div class="container">
+                <div class="card">
+                    <div class="card-body">
+                        ${content}
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+    previewWindow.document.close();
+}
+</script>
+{% endblock %}

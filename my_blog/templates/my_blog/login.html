@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Django Blog{% endblock %}
+
+{% block header %}Welcome Back{% endblock %}
+{% block subtitle %}Login to your account to continue{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-4x text-primary mb-3"></i>
+                    <h4 class="fw-bold">Sign In</h4>
+                    <p class="text-muted">Enter your credentials to access your account</p>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Username Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1"></i><strong>Username</strong>
+                        </label>
+                        <input type="text" 
+                               class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" 
+                               name="{{ form.username.name }}" 
+                               id="{{ form.username.id_for_label }}"
+                               value="{{ form.username.value|default:'' }}"
+                               placeholder="Enter your username"
+                               required
+                               autocomplete="username">
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock me-1"></i><strong>Password</strong>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" 
+                                   class="form-control form-control-lg {% if form.password.errors %}is-invalid{% endif %}" 
+                                   name="{{ form.password.name }}" 
+                                   id="{{ form.password.id_for_label }}"
+                                   placeholder="Enter your password"
+                                   required
+                                   autocomplete="current-password">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Remember Me and Forgot Password -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember me
+                            </label>
+                        </div>
+                        <a href="#" class="text-decoration-none">
+                            <small>Forgot password?</small>
+                        </a>
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </button>
+                </form>
+
+                <!-- Social Login (Optional) -->
+                <div class="text-center mb-3">
+                    <small class="text-muted">or sign in with</small>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="fab fa-google me-2"></i>Continue with Google
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="fab fa-github me-2"></i>Continue with GitHub
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Link -->
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                Don't have an account? 
+                <a href="{% url 'register' %}" class="text-decoration-none fw-bold">
+                    Create one here
+                </a>
+            </p>
+        </div>
+
+        <!-- Features Card -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-star me-2"></i>Why join our blog community?
+                </h6>
+                <div class="row">
+                    <div class="col-6">
+                        <ul class="list-unstyled small">
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Write amazing posts
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Connect with readers
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul class="list-unstyled small">
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Like and comment
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Discover new content
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById('{{ form.password.id_for_label }}');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
+// Focus on username field when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('{{ form.username.id_for_label }}').focus();
+});
+</script>
+{% endblock %}

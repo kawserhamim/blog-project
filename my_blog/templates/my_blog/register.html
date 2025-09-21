@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Django Blog{% endblock %}
+
+{% block header %}Join Our Community{% endblock %}
+{% block subtitle %}Create your account to start sharing your stories{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-plus fa-4x text-primary mb-3"></i>
+                    <h4 class="fw-bold">Create Account</h4>
+                    <p class="text-muted">Join our community and start blogging today</p>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Username Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1"></i><strong>Username</strong>
+                        </label>
+                        <input type="text" 
+                               class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" 
+                               name="{{ form.username.name }}" 
+                               id="{{ form.username.id_for_label }}"
+                               value="{{ form.username.value|default:'' }}"
+                               placeholder="Choose a unique username"
+                               required
+                               autocomplete="username">
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                150 characters or fewer. Letters, digits and @/./+/-/_ only.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock me-1"></i><strong>Password</strong>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" 
+                                   class="form-control form-control-lg {% if form.password1.errors %}is-invalid{% endif %}" 
+                                   name="{{ form.password1.name }}" 
+                                   id="{{ form.password1.id_for_label }}"
+                                   placeholder="Create a strong password"
+                                   required
+                                   autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password1')">
+                                <i class="fas fa-eye" id="toggleIcon1"></i>
+                            </button>
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password1.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if not form.password1.errors %}
+                            <div class="form-text">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Your password must contain at least 8 characters and can't be too common.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock me-1"></i><strong>Confirm Password</strong>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" 
+                                   class="form-control form-control-lg {% if form.password2.errors %}is-invalid{% endif %}" 
+                                   name="{{ form.password2.name }}" 
+                                   id="{{ form.password2.id_for_label }}"
+                                   placeholder="Confirm your password"
+                                   required
+                                   autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password2')">
+                                <i class="fas fa-eye" id="toggleIcon2"></i>
+                            </button>
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password2.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> 
+                            and <a href="#" class="text-decoration-none">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <!-- Register Button -->
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </button>
+                </form>
+
+                <!-- Social Registration (Optional) -->
+                <div class="text-center mb-3">
+                    <small class="text-muted">or register with</small>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="fab fa-google me-2"></i>Continue with Google
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="fab fa-github me-2"></i>Continue with GitHub
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                Already have an account? 
+                <a href="{% url 'login' %}" class="text-decoration-none fw-bold">
+                    Sign in here
+                </a>
+            </p>
+        </div>
+
+        <!-- Password Requirements -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-key me-2"></i>Password Requirements
+                </h6>
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="list-unstyled small mb-0">
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                At least 8 characters long
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Not too similar to your username
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Not a commonly used password
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-1"></i>
+                                Not entirely numeric
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits Card -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-gift me-2"></i>What you get with your account
+                </h6>
+                <div class="row">
+                    <div class="col-6">
+                        <ul class="list-unstyled small">
+                            <li class="mb-1">
+                                <i class="fas fa-pen text-primary me-1"></i>
+                                Write & publish posts
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-heart text-danger me-1"></i>
+                                Like posts you enjoy
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-comment text-success me-1"></i>
+                                Comment on posts
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul class="list-unstyled small">
+                            <li class="mb-1">
+                                <i class="fas fa-users text-info me-1"></i>
+                                Connect with writers
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-search text-warning me-1"></i>
+                                Discover great content
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-chart-line text-secondary me-1"></i>
+                                Track your post views
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(fieldName) {
+    const passwordField = document.getElementById('id_' + fieldName);
+    const toggleIcon = document.getElementById('toggleIcon' + (fieldName === 'password1' ? '1' : '2'));
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
+// Password strength indicator
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordField = document.getElementById('{{ form.password1.id_for_label }}');
+    const confirmField = document.getElementById('{{ form.password2.id_for_label }}');
+    
+    // Focus on username field when page loads
+    document.getElementById('{{ form.username.id_for_label }}').focus();
+    
+    // Check password match
+    confirmField.addEventListener('input', function() {
+        if (passwordField.value !== confirmField.value) {
+            confirmField.setCustomValidity("Passwords don't match");
+        } else {
+            confirmField.setCustomValidity('');
+        }
+    });
+    
+    passwordField.addEventListener('input', function() {
+        if (passwordField.value !== confirmField.value && confirmField.value !== '') {
+            confirmField.setCustomValidity("Passwords don't match");
+        } else {
+            confirmField.setCustomValidity('');
+        }
+    });
+});
+</script>
+{% endblock %}

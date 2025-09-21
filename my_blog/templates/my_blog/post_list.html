@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog Posts - Django Blog{% endblock %}
+
+{% block header %}Latest Blog Posts{% endblock %}
+{% block subtitle %}Discover amazing stories and insights{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Search Bar -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" name="search" placeholder="Search posts..." 
+                               value="{{ searchQ|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.name }}" 
+                                    {% if categoryQ == category.name %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Posts -->
+        {% if posts %}
+            {% for post in posts %}
+                <article class="card post-card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h2 class="card-title h4">
+                                    <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none">
+                                        {{ post.title }}
+                                    </a>
+                                </h2>
+                                <div class="text-muted small">
+                                    <i class="fas fa-user me-1"></i>by {{ post.author.username }}
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-calendar me-1"></i>{{ post.created_at|date:"M d, Y" }}
+                                    {% if post.category %}
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-folder me-1"></i>{{ post.category.name }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if user == post.author %}
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                            type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'edit_post' post.pk %}">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'delete_post' post.pk %}">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-text">
+                            {{ post.content|truncatewords:30|safe }}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="d-flex align-items-center">
+                                {% if post.tag.all %}
+                                    {% for tag in post.tag.all %}
+                                        <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="d-flex align-items-center text-muted small">
+                                <span class="me-3">
+                                    <i class="fas fa-eye me-1"></i>{{ post.view_count }}
+                                </span>
+                                <span class="me-3">
+                                    <i class="fas fa-heart me-1"></i>{{ post.liked_users.count }}
+                                </span>
+                                <span>
+                                    <i class="fas fa-comment me-1"></i>{{ post.comment_set.count }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="{% url 'post_detail' post.pk %}" class="btn btn-primary btn-sm">
+                                Read More <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Blog pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if searchQ %}&search={{ searchQ }}{% endif %}{% if categoryQ %}&category={{ categoryQ }}{% endif %}{% if tagQ %}&tag={{ tagQ }}{% endif %}">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if searchQ %}&search={{ searchQ }}{% endif %}{% if categoryQ %}&category={{ categoryQ }}{% endif %}{% if tagQ %}&tag={{ tagQ }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if searchQ %}&search={{ searchQ }}{% endif %}{% if categoryQ %}&category={{ categoryQ }}{% endif %}{% if tagQ %}&tag={{ tagQ }}{% endif %}">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h3>No Posts Found</h3>
+                    <p class="text-muted">
+                        {% if searchQ or categoryQ or tagQ %}
+                            No posts match your search criteria. Try adjusting your filters.
+                        {% else %}
+                            There are no blog posts yet. Be the first to create one!
+                        {% endif %}
+                    </p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_post' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-1"></i>Create Your First Post
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="sidebar">
+            <!-- Categories -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-folder me-2"></i>Categories
+                </h5>
+                <div class="list-group">
+                    <a href="{% url 'post_list' %}" 
+                       class="list-group-item list-group-item-action {% if not categoryQ %}active{% endif %}">
+                        All Categories
+                    </a>
+                    {% for category in categories %}
+                        <a href="?category={{ category.name }}" 
+                           class="list-group-item list-group-item-action {% if categoryQ == category.name %}active{% endif %}">
+                            {{ category.name }}
+                            <span class="badge bg-primary rounded-pill">{{ category.post_set.count }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-tags me-2"></i>Popular Tags
+                </h5>
+                <div class="d-flex flex-wrap">
+                    {% for tag in tags %}
+                        <a href="?tag={{ tag.name }}" 
+                           class="badge bg-light text-dark text-decoration-none me-2 mb-2 p-2 {% if tagQ == tag.name %}bg-primary text-white{% endif %}">
+                            #{{ tag.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            {% if user.is_authenticated %}
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'create_post' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-1"></i>New Post
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="fas fa-user me-1"></i>My Profile
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

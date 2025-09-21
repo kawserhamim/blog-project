@@ -43,3 +43,111 @@ def PostListView(request):
         'tags': models.Tag.objects.all(),
     }
     return render(request,'post_list.html',context)
+
+def PostDetailView(request,pk):
+    post = get_object_or_404(models.Post,pk=pk)
+    post.view_count += 1
+    post.save()
+    
+    if request.method == 'POST':
+        form = forms.CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.author = request.user
+            comment.post = post
+            comment.save()
+            return redirect('post_detail',pk=post.pk)
+    else:
+        form = forms.CommentForm()
+
+    comments = post.comment_set.all()
+    is_liked = post.liked_users.filter(id=request.user.id).exists() if request.user.is_authenticated else False
+    like_count = post.liked_users.count()
+    liked_users = post.liked_users.all() if is_liked else None
+
+    # comments = models.Comment.objects.filter(post=post)
+    # is_liked = False
+    # if post.liked_users.filter(id=request.user.id).exists():
+    #     is_liked = True         
+    context = {
+        'post': post,       
+        'comments': comments,
+        'form': form,
+        'is_liked': is_liked,
+        'like_count': like_count,
+        'comment_form': form,
+        'categories': models.Category.objects.all(),
+        'tags' : models.Tag.objects.all(), 
+    }
+    return render(request,'post_detail.html',context)
+
+def LikePost(request,id):
+    post = get_object_or_404(models.Post,pk=id)
+    if post.liked_users.filter(id=request.user.id).exists():
+        post.liked_users.add(request.user)
+    else:
+        post.liked_users.remove(request.user)
+    return redirect('post_detail',pk=post.pk)
+
+def create_post(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    if request.method == 'POST':
+        form = forms.PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            form.save_m2m()  # Save the many-to-many relationships
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = forms.PostForm()
+    return render(request, 'create_post.html', {'form': form})
+
+def edit_post(request, pk):
+    post = get_object_or_404(models.Post, pk=pk)
+    if request.user != post.author:
+        return redirect('post_detail', pk=post.pk)
+    if request.method == 'POST':
+        form = forms.PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = forms.PostForm(instance=post)
+    return render(request, 'edit_post.html', {'form': form, 'post': post})
+
+def delete_post(request, pk):
+    post = get_object_or_404(models.Post, pk=pk)
+    if request.user != post.author:
+        return redirect('post_detail', pk=post.pk)
+    if request.method == 'POST':
+        post.delete()
+        return redirect('post_list')
+    return render(request, 'delete_post.html', {'post': post})\
+    
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('post_list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('post_list')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})

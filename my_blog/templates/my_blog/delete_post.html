@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Post - Django Blog{% endblock %}
+
+{% block header %}Delete Post{% endblock %}
+{% block subtitle %}Are you sure you want to delete this post?{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Confirmation Card -->
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-warning me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. Deleting this post will permanently remove it and all associated comments.
+                </div>
+
+                <!-- Post Preview -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ post.title }}</h4>
+                        <div class="text-muted mb-3">
+                            <i class="fas fa-user me-1"></i>by {{ post.author.username }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-calendar me-1"></i>{{ post.created_at|date:"M d, Y" }}
+                            {% if post.category %}
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-folder me-1"></i>{{ post.category.name }}
+                            {% endif %}
+                        </div>
+                        <div class="post-content">
+                            {{ post.content|truncatewords:50|safe }}
+                            {% if post.content|wordcount > 50 %}
+                                <span class="text-muted">... (truncated)</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Post Stats -->
+                        <div class="row mt-3 pt-3 border-top">
+                            <div class="col-3 text-center">
+                                <div class="text-muted">
+                                    <i class="fas fa-eye"></i>
+                                    <div>{{ post.view_count }}</div>
+                                    <small>Views</small>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="text-muted">
+                                    <i class="fas fa-heart"></i>
+                                    <div>{{ post.liked_users.count }}</div>
+                                    <small>Likes</small>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="text-muted">
+                                    <i class="fas fa-comments"></i>
+                                    <div>{{ post.comment_set.count }}</div>
+                                    <small>Comments</small>
+                                </div>
+                            </div>
+                            <div class="col-3 text-center">
+                                <div class="text-muted">
+                                    <i class="fas fa-tags"></i>
+                                    <div>{{ post.tag.count }}</div>
+                                    <small>Tags</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        {% if post.tag.all %}
+                            <div class="mt-3">
+                                <strong>Tags:</strong>
+                                {% for tag in post.tag.all %}
+                                    <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Impact Information -->
+                {% if post.comment_set.count > 0 or post.liked_users.count > 0 %}
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Impact of Deletion:
+                        </h6>
+                        <ul class="mb-0">
+                            {% if post.comment_set.count > 0 %}
+                                <li>{{ post.comment_set.count }} comment{{ post.comment_set.count|pluralize }} will be permanently deleted</li>
+                            {% endif %}
+                            {% if post.liked_users.count > 0 %}
+                                <li>{{ post.liked_users.count }} like{{ post.liked_users.count|pluralize }} will be removed</li>
+                            {% endif %}
+                            <li>All view statistics will be lost</li>
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Confirmation Form -->
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <!-- Confirmation Checkbox -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                        <label class="form-check-label" for="confirmDelete">
+                            I understand that this action cannot be undone and I want to permanently delete this post.
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'post_detail' post.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel & Go Back
+                        </a>
+                        
+                        <div>
+                            <a href="{% url 'edit_post' post.pk %}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-edit me-1"></i>Edit Instead
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                <i class="fas fa-trash me-1"></i>Delete Permanently
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alternative Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Alternative Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Instead of deleting, you might want to consider:
+                </p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-edit text-primary me-2"></i>
+                            <div>
+                                <strong>Edit the post</strong>
+                                <small class="d-block text-muted">Update the content instead</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-archive text-warning me-2"></i>
+                            <div>
+                                <strong>Archive it</strong>
+                                <small class="d-block text-muted">Keep it but make it private</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirmDelete');
+    const deleteButton = document.getElementById('deleteButton');
+    
+    checkbox.addEventListener('change', function() {
+        deleteButton.disabled = !this.checked;
+        if (this.checked) {
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-danger');
+        }
+    });
+    
+    // Double confirmation on form submit
+    deleteButton.closest('form').addEventListener('submit', function(e) {
+        if (!confirm('Are you absolutely sure you want to delete "{{ post.title }}"? This action cannot be undone.')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
