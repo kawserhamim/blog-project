@@ -20,15 +20,15 @@ def PostListView(request):
         posts = models.Post.objects.filter(category__name__icontains = categoryQ)
     if tagQ :
         posts = models.Post.objects.filter(tag__name__icontains = tagQ)
-        if searchQ:
-            posts = models.Post.filter(
-                Q(title__icontains = searchQ) |
-                Q(content__icontains = searchQ) |
-                Q(author__username__icontains = searchQ)|
-                Q(category__name__icontains = searchQ) |
-                Q(tag__name__icontains = searchQ)
+    if searchQ:
+        posts = models.Post.objects.filter(
+            Q(title__icontains = searchQ) |
+            Q(content__icontains = searchQ) |
+            Q(author__username__icontains = searchQ)|
+            Q(category__name__icontains = searchQ) |
+            Q(tag__name__icontains = searchQ)
 
-            ).distinct()
+        ).distinct()
     paginator = Paginator(posts,2) # Show 2 posts per page.
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -42,7 +42,7 @@ def PostListView(request):
         'categories': models.Category.objects.all(),
         'tags': models.Tag.objects.all(),
     }
-    return render(request,'post_list.html',context)
+    return render(request,'my_blog/post_list.html',context)
 
 def PostDetailView(request,pk):
     post = get_object_or_404(models.Post,pk=pk)
@@ -79,14 +79,14 @@ def PostDetailView(request,pk):
         'categories': models.Category.objects.all(),
         'tags' : models.Tag.objects.all(), 
     }
-    return render(request,'post_detail.html',context)
+    return render(request,'my_blog/post_detail.html',context)
 
 def LikePost(request,id):
     post = get_object_or_404(models.Post,pk=id)
     if post.liked_users.filter(id=request.user.id).exists():
-        post.liked_users.add(request.user)
-    else:
         post.liked_users.remove(request.user)
+    else:
+        post.liked_users.add(request.user)
     return redirect('post_detail',pk=post.pk)
 
 def create_post(request):
@@ -102,7 +102,7 @@ def create_post(request):
             return redirect('post_detail', pk=post.pk)
     else:
         form = forms.PostForm()
-    return render(request, 'create_post.html', {'form': form})
+    return render(request, 'my_blog/create_post.html', {'form': form})
 
 def edit_post(request, pk):
     post = get_object_or_404(models.Post, pk=pk)
@@ -115,7 +115,7 @@ def edit_post(request, pk):
             return redirect('post_detail', pk=post.pk)
     else:
         form = forms.PostForm(instance=post)
-    return render(request, 'edit_post.html', {'form': form, 'post': post})
+    return render(request, 'my_blog/edit_post.html', {'form': form, 'post': post})
 
 def delete_post(request, pk):
     post = get_object_or_404(models.Post, pk=pk)
@@ -124,7 +124,7 @@ def delete_post(request, pk):
     if request.method == 'POST':
         post.delete()
         return redirect('post_list')
-    return render(request, 'delete_post.html', {'post': post})\
+    return render(request, 'my_blog/delete_post.html', {'post': post})\
     
 
 def register_view(request):
@@ -136,7 +136,7 @@ def register_view(request):
             return redirect('post_list')
     else:
         form = UserCreationForm()
-    return render(request, 'register.html', {'form': form})
+    return render(request, 'my_blog/register.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':
@@ -150,4 +150,8 @@ def login_view(request):
                 return redirect('post_list')
     else:
         form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'my_blog/login.html', {'form': form})
+
+def logout_view(request):
+    logout(request)
+    return redirect('post_list')

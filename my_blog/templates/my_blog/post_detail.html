@@ -136,9 +136,9 @@
                     <form method="post" class="mb-4">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="{{ form.content.id_for_label }}" class="form-label">Add a comment</label>
-                            <textarea class="form-control" name="{{ form.content.name }}" 
-                                      id="{{ form.content.id_for_label }}" rows="3" 
+                            <label for="{{ comment_form.content.id_for_label }}" class="form-label">Add a comment</label>
+                            <textarea class="form-control" name="{{ comment_form.content.name }}" 
+                                      id="{{ comment_form.content.id_for_label }}" rows="3" 
                                       placeholder="Share your thoughts..." required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">
